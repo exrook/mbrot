@@ -21,6 +21,7 @@ var fractalList = map[string]mbrot.Fractaler{
   "mbrot": mbrot.Mandlebrot{},
   "bship": mbrot.BurningShip{},
   "nbrot": mbrot.Nbrot{3},
+  "mag1" : mbrot.Magnent1{},
 }
 
 func main() {
