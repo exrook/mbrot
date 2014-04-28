@@ -1,43 +1,62 @@
 package mbrot
 
-import "fmt"
+import (
+  "runtime"
+)
+
+type point struct {
+  x,y,n uint
+  c complex128
+}
 
 // Renders the function defined by fn
-func Render(x,y,r float64, w,h,nMax uint, fn Fractaler) Fractal {
-  //This section should be rewritten at some point
-  lft :=  x-r
-  rght := x+r
-  tp := y+r
-  bttm := y-r
-  var s,xStep,yStep float64
-  if h>w { //tall
-    s = float64(h)/float64(w)
-    tp = y+(r*s)
-    bttm = y-(r*s)
-  } else { //wide
-    s = float64(w)/float64(h)
-    rght = x+(r*s)
-    lft = x-(r*s)
-  }
-  xStep = (rght-lft)/float64(w)
-  yStep = (bttm-tp)/float64(h)
-  f := NewFractal(w,h)
-  fmt.Println(lft,tp)
-  fmt.Println(rght,bttm)
-  fmt.Println(xStep,yStep)
-  for xPos := uint(0); xPos < w; xPos = xPos+1 {
-    for yPos := uint(0); yPos < h; yPos = yPos+1 {
-      x := lft+(float64(xPos)*xStep)
-      y := bttm-(float64(yPos)*yStep)
-      c := complex(x,y)
-      z := complex(0,0)
-      n := uint(1)
-      for ;n < nMax && fn.CheckBounds(z);n=n+1 {
-        z = fn.Iterate(z,c)
+func Render(i Image, nMax uint, fn Fractaler) Fractal {
+  nCPU := runtime.NumCPU()
+  runtime.GOMAXPROCS(nCPU)
+  
+  xStep, yStep := i.Scale()
+  f := NewFractal(i.W,i.H)
+  
+  // points are fed through in to be computed then to d to be written to memory
+  in := make(chan point,nCPU)
+  d := make(chan point,nCPU)
+  count := 0 // used to coordinate the closing of d
+  
+  // generate the points to be fed into d
+  go func(i Image) {
+    for x := uint(0);x < i.W;x=x+1 {
+      for y := uint(0); y<i.H;y=y+1 {
+        in <- point{
+                x:x,
+                y:y,
+                c:i.P1-complex(float64(x)*xStep,float64(y)*yStep),
+        }
       }
-      f.Data[xPos][yPos] = n
     }
-    fmt.Printf("Column %v/%v %v%%\n", xPos,w,float32(xPos)/float32(w)*100)
+    close(in)
+  }(i)
+  
+  // Start the worker functions who perform the calculations
+  for i:=0;i<nCPU;i=i+1 {
+    go func() {
+      for p := range in {
+        z := complex128(0)
+        for p.n=1;p.n<nMax && fn.CheckBounds(z);p.n=p.n+1 {
+          z = fn.Iterate(z,p.c)
+        }
+        d<-p
+      }
+      if count+1 == nCPU {
+        close(d)
+      }
+      count = count+1
+    }()
   }
+  
+  // Enter the data into the array as it comes out
+  for p := range d {
+    f.Data[p.x][p.y] = p.n
+  }    
+    
   return f
 }

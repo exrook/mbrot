@@ -40,7 +40,7 @@ func main() {
   if m == nil {
     m = mbrot.Mandlebrot{}
   }
-  f := mbrot.Render(*x,*y,*r,*w,*h,*n,m)
+  f := mbrot.Render(mbrot.NewImage(*x,*y,*r,*w,*h),*n,m)
   if c := paletteList[*P];c != nil {
     f.SetPalette(c(int(*n)))
   } else {
