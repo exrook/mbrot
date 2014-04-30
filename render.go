@@ -68,11 +68,6 @@ func Render(i Image, nMax uint, fn Fractaler) Fractal {
 	}
 
 	// Enter the data into the array as it comes out
-	go func() {
-		for p := range d {
-			f.Data[p.x][p.y] = p.n
-		}
-	}()
 	for p := range d {
 		f.Data[p.x][p.y] = p.n
 	}
