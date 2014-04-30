@@ -8,6 +8,7 @@ import (
 	"image/color"
 	"image/png"
 	"os"
+	"runtime"
 )
 
 var paletteList = map[string]func(int) color.Palette{
@@ -35,7 +36,13 @@ func main() {
 	n := flag.Uint("n", 20, "Maximum iterations")
 	P := flag.String("P", "gray", "Which color palette to use for PNG output")
 	t := flag.String("t", "mbrot", "mbrot, bship, or nbrot")
+	c := flag.Int("c", 0, "number of real threads to use, 0 for autodetect")
 	flag.Parse()
+	nCPU := *c
+	if *c < 1 {
+    nCPU = runtime.NumCPU()
+  }
+  runtime.GOMAXPROCS(nCPU)
 	m := fractalList[*t]
 	if m == nil {
 		m = mbrot.Mandelbrot{}

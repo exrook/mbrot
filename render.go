@@ -11,9 +11,7 @@ type point struct {
 
 // Renders the function defined by fn
 func Render(i Image, nMax uint, fn Fractaler) Fractal {
-	nCPU := runtime.NumCPU()
-	runtime.GOMAXPROCS(nCPU)
-
+  nCPU := runtime.GOMAXPROCS(0)
 	xStep, yStep := i.Scale()
 	f := NewFractal(i.W, i.H)
 
