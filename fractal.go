@@ -37,9 +37,15 @@ func (f Fractal) Bounds() image.Rectangle {
 }
 
 func (f Fractal) At(x, y int) color.Color {
-	return f.palette[f.Data[uint(x)][uint(y)]]
+  x = x%int(f.x)
+  y = y%int(f.y)
+  d := f.Data[uint(x)][uint(y)]
+  if f.palette != nil {
+	  return f.palette[d%uint(len(f.palette))]
+	}
+	return color.Gray16{uint16(d)}
 }
 
-func (f Fractal) ColorIndexAt(x, y int) uint8 {
+/*func (f Fractal) ColorIndexAt(x, y int) uint8 {
 	return uint8(f.Data[uint(x)][uint(y)])
-}
+}*/

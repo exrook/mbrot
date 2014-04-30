@@ -26,7 +26,7 @@ var fractalList = map[string]mbrot.Fractaler{
 }
 
 func main() {
-	p := flag.Bool("p", true, "Whether or not to print to the command-line")
+	p := flag.Bool("p", false, "Whether or not to print to the command-line")
 	o := flag.String("o", "", "The name of a file to write a PNG image to")
 	x := flag.Float64("x", 0, "X coord")
 	y := flag.Float64("y", 0, "Y coord")
@@ -62,7 +62,10 @@ func main() {
 			fmt.Println(err)
 			return
 		}
-		png.Encode(out, f)
+		if err := png.Encode(out, f); err != nil {
+		  fmt.Println(err)
+		  return
+		}
 	}
 }
 
